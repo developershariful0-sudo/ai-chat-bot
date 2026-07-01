@@ -7,7 +7,7 @@ const CONFIG = {
     API_KEY: 'gsk_vawFit7mHV' + 'mxZqp96spbWGdyb3FYl8ybjNl3eY9yshlqnhucww1s',
     BOT_TOKEN: '8986244844:AAF9nt3XDiCeHSMnGpw6NtLcuDsOD7bFAao',
     API_URL: 'https://api.groq.com/openai/v1/chat/completions',
-    DEFAULT_MODEL: 'llama3-8b-8192',
+    DEFAULT_MODEL: 'llama-3.1-8b-instant',
     MAX_HISTORY: 20,
     SYSTEM_PROMPT: 'You are a helpful, friendly AI assistant. You respond concisely and clearly. Use markdown formatting when appropriate. If someone writes in Bengali/Bangla, respond in Bengali.'
 };
