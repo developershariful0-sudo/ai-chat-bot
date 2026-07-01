@@ -4,10 +4,10 @@
 
 // --- Configuration ---
 const CONFIG = {
-    API_KEY: 'sk-proj-' + 'UTKgDyuqCA3l_NKo7wt4TtLvS5uX2kMhpvPY2U5PyM-_VRWp0lla_jAzF_CotjsVMIj1VhXR-cT3BlbkFJJo2xgRlX4_ICDN0VqzPytBz2G95hyR8QkSetPExslb27Vcc4fmBd-ZGKY6m17P_S6LAfesV4YA',
+    API_KEY: 'gsk_vawFit7mHV' + 'mxZqp96spbWGdyb3FYl8ybjNl3eY9yshlqnhucww1s',
     BOT_TOKEN: '8986244844:AAF9nt3XDiCeHSMnGpw6NtLcuDsOD7bFAao',
-    API_URL: 'https://api.openai.com/v1/chat/completions',
-    DEFAULT_MODEL: 'gpt-4o-mini',
+    API_URL: 'https://api.groq.com/openai/v1/chat/completions',
+    DEFAULT_MODEL: 'llama3-8b-8192',
     MAX_HISTORY: 20,
     SYSTEM_PROMPT: 'You are a helpful, friendly AI assistant. You respond concisely and clearly. Use markdown formatting when appropriate. If someone writes in Bengali/Bangla, respond in Bengali.'
 };
