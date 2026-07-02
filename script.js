@@ -109,8 +109,6 @@ function setupEventListeners() {
     });
     
     // Image Handling
-    attachBtn.addEventListener('click', () => fileInput.click());
-    
     fileInput.addEventListener('change', (e) => {
         if (e.target.files && e.target.files[0]) handleImageFile(e.target.files[0]);
     });
@@ -285,7 +283,7 @@ async function generateResponse() {
     let requestModel = state.currentModel;
     const hasImage = apiMessages.some(m => Array.isArray(m.content));
     if (hasImage && !requestModel.includes('vision')) {
-        requestModel = 'llama-3.2-11b-vision-preview';
+        requestModel = 'llama-3.2-90b-vision-preview';
     }
     
     try {
