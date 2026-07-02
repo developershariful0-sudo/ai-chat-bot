@@ -688,6 +688,66 @@ html, body {
     transform: scale(0.9);
 }
 
+/* ============ ATTACHMENT ============ */
+.attach-btn {
+    border: none;
+    background: transparent;
+    padding: 8px;
+    margin-right: 4px;
+}
+
+.attach-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.image-preview-container {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: var(--shadow-md);
+    animation: fadeIn 0.3s ease-out;
+    z-index: 10;
+}
+
+.image-preview-container img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+}
+
+.remove-img-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ef4444;
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.message-image {
+    max-width: 100%;
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    max-height: 300px;
+    object-fit: cover;
+}
+
 /* ============ ERROR STATE ============ */
 .error-message {
     background: rgba(239, 68, 68, 0.1) !important;

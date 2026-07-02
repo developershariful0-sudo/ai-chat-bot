@@ -18,7 +18,8 @@ let state = {
     messages: [],
     currentModel: CONFIG.DEFAULT_MODEL,
     isGenerating: false,
-    abortController: null
+    abortController: null,
+    currentImageBase64: null
 };
 
 // --- DOM Elements ---
@@ -34,6 +35,11 @@ const modelBtn = $('modelBtn');
 const modelModal = $('modelModal');
 const closeModal = $('closeModal');
 const statusText = $('statusText');
+const fileInput = $('fileInput');
+const attachBtn = $('attachBtn');
+const imagePreviewContainer = $('imagePreviewContainer');
+const imagePreview = $('imagePreview');
+const removeImageBtn = $('removeImageBtn');
 
 // --- Telegram WebApp Integration ---
 let tg = null;
@@ -99,8 +105,23 @@ function setupEventListeners() {
     // Input changes
     messageInput.addEventListener('input', () => {
         autoResizeTextarea();
-        sendBtn.disabled = !messageInput.value.trim();
+        checkSendBtnState();
     });
+    
+    // Image Handling
+    attachBtn.addEventListener('click', () => fileInput.click());
+    
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) handleImageFile(e.target.files[0]);
+    });
+    
+    messageInput.addEventListener('paste', (e) => {
+        if (e.clipboardData.files && e.clipboardData.files.length > 0) {
+            handleImageFile(e.clipboardData.files[0]);
+        }
+    });
+    
+    removeImageBtn.addEventListener('click', clearImage);
     
     // Clear chat
     clearBtn.addEventListener('click', () => {
@@ -153,6 +174,44 @@ function autoResizeTextarea() {
     messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
 }
 
+function checkSendBtnState() {
+    const hasText = messageInput.value.trim().length > 0;
+    const hasImage = !!state.currentImageBase64;
+    sendBtn.disabled = !(hasText || hasImage);
+}
+
+// --- Image Handling ---
+function handleImageFile(file) {
+    if (!file.type.startsWith('image/')) {
+        alert('Please select an image file.');
+        return;
+    }
+    
+    // Check file size (max 4MB for API limits)
+    if (file.size > 4 * 1024 * 1024) {
+        alert('Image is too large. Please use an image smaller than 4MB.');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        state.currentImageBase64 = e.target.result;
+        imagePreview.src = state.currentImageBase64;
+        imagePreviewContainer.style.display = 'flex';
+        checkSendBtnState();
+        haptic('light');
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearImage() {
+    state.currentImageBase64 = null;
+    imagePreview.src = '';
+    imagePreviewContainer.style.display = 'none';
+    fileInput.value = '';
+    checkSendBtnState();
+}
+
 // --- Model UI ---
 function updateModelUI() {
     const saved = localStorage.getItem('selectedModel');
@@ -179,20 +238,28 @@ function updateModelUI() {
 // --- Chat Logic ---
 async function handleSend() {
     const text = messageInput.value.trim();
-    if (!text || state.isGenerating) return;
+    if ((!text && !state.currentImageBase64) || state.isGenerating) return;
     
     haptic('light');
     hideWelcome();
     
     // Add user message
-    const userMsg = { role: 'user', content: text };
+    let content = text;
+    if (state.currentImageBase64) {
+        content = [
+            { type: "text", text: text || "Please analyze this image." },
+            { type: "image_url", image_url: { url: state.currentImageBase64 } }
+        ];
+    }
+    
+    const userMsg = { role: 'user', content: content };
     state.messages.push(userMsg);
     renderMessage(userMsg);
     
     // Clear input
     messageInput.value = '';
     messageInput.style.height = 'auto';
-    sendBtn.disabled = true;
+    clearImage();
     
     scrollToBottom();
     
@@ -214,6 +281,13 @@ async function generateResponse() {
         ...historyMessages
     ];
     
+    // Auto-switch to vision model if image is attached
+    let requestModel = state.currentModel;
+    const hasImage = apiMessages.some(m => Array.isArray(m.content));
+    if (hasImage && !requestModel.includes('vision')) {
+        requestModel = 'llama-3.2-11b-vision-preview';
+    }
+    
     try {
         const response = await fetch(CONFIG.API_URL, {
             method: 'POST',
@@ -222,7 +296,7 @@ async function generateResponse() {
                 'Authorization': `Bearer ${CONFIG.API_KEY}`
             },
             body: JSON.stringify({
-                model: state.currentModel,
+                model: requestModel,
                 messages: apiMessages,
                 stream: true,
                 temperature: 0.7,
@@ -316,11 +390,21 @@ function renderMessage(msg, isStreaming = false) {
         ? '👤' 
         : `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>`;
     
+    let displayContent = '';
+    if (Array.isArray(msg.content)) {
+        const textPart = msg.content.find(c => c.type === 'text');
+        const imgPart = msg.content.find(c => c.type === 'image_url');
+        if (imgPart) displayContent += `<img src="${imgPart.image_url.url}" class="message-image">`;
+        if (textPart) displayContent += escapeHTML(textPart.text);
+    } else {
+        displayContent = msg.role === 'user' ? escapeHTML(msg.content) : formatMarkdown(msg.content);
+    }
+    
     div.innerHTML = `
         <div class="message-avatar">${avatarContent}</div>
         <div class="message-content">
             <div class="message-bubble${isStreaming ? ' streaming-cursor' : ''}">
-                ${msg.role === 'user' ? escapeHTML(msg.content) : formatMarkdown(msg.content)}
+                ${displayContent}
             </div>
             <div class="message-time">${time}</div>
         </div>
