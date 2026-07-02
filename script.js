@@ -158,6 +158,19 @@ function updateModelUI() {
     const saved = localStorage.getItem('selectedModel');
     if (saved) state.currentModel = saved;
     
+    // Check if the saved model actually exists in our current UI list
+    let modelExists = false;
+    document.querySelectorAll('.model-option').forEach(btn => {
+        if (btn.dataset.model === state.currentModel) modelExists = true;
+    });
+
+    // If it doesn't exist (e.g., switched from OpenAI to Groq), revert to default
+    if (!modelExists) {
+        state.currentModel = CONFIG.DEFAULT_MODEL;
+        localStorage.setItem('selectedModel', state.currentModel);
+    }
+    
+    // Update UI active state
     document.querySelectorAll('.model-option').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.model === state.currentModel);
     });
